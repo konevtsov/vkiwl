@@ -1,0 +1,214 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Навигация */
+.top-nav {
+    background: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+    padding: 8px 0;
+    display: block;
+}
+
+.top-nav .container {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+
+.top-nav a {
+    color: #666;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.top-nav a:hover {
+    color: #87b400;
+}
+
+/* Шапка */
+.header {
+    background: white;
+    border-bottom: 1px solid #ddd;
+    position: sticky;
+    top: 0;
+    padding: 15px 0;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #444;
+}
+
+.header-contacts {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.phone {
+    font-size: 18px;
+    font-weight: 700;
+    color: #444;
+}
+
+.btn-call {
+    padding: 8px 24px;
+    border: 2px solid #ff6c00;
+    color: #ff6c00;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.btn-call:hover {
+    background: #ff6c00;
+    color: white;
+}
+
+/* Главный экран */
+.hero {
+    background-image: url('https://gardens-parks.ru/wp-content/uploads/fly-images/2914/YAponskij-stil-v-landshaftnom-dizajne-2400x2000.jpg');
+    background-size: cover;
+    background-position: center;
+    height: 500px;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.4);
+}
+
+.hero-content {
+    position: relative;
+    color: white;
+    text-align: center;
+    width: 100%;
+}
+
+.hero-title {
+    font-size: 30px;
+    max-width: 800px;
+    margin: 0 auto 20px;
+    font-size: 48px
+}
+
+.hero-text {
+    font-size: 18px;
+    max-width: 700px;
+    margin: 0 auto 30px;
+    opacity: 0.9;
+}
+
+/* Кнопки */
+.btn {
+    display: inline-block;
+    background: #ff6c00;
+    color: white;
+    padding: 12px 32px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.btn:hover {
+    background: #e66100;
+}
+
+.btn-big {
+    padding: 16px 40px;
+}
+
+/* Точки справа */
+.hero-dots {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: white;
+    opacity: 0.4;
+}
+
+.dot-active {
+    background: #ff6c00;
+    opacity: 1;
+}
+
+/* Услуги */
+.services {
+    background: #87b400;
+    padding: 50px 0;
+    color: white;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 30px;
+}
+
+
+.service-item {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.service-item h3 {
+    margin-bottom: 8px;
+    font-size: 18px;
+}
+
+.service-item p {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+/* Иконки для сервисов */
+.service-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+}

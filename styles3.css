@@ -1,0 +1,188 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #2D4A48;
+    color: white;
+    font-family: 'Sora', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 40px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.title {
+    font-family: 'Pangolin', cursive;
+    font-size: 72px;
+    text-align: center;
+    margin-bottom: 40px;
+    letter-spacing: 2px;
+    width: 100%;
+    max-width: 800px;
+}
+
+.form {
+    display: flex;
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 60px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.form input {
+    flex: 1;
+    height: 64px;
+    padding-left: 24px;
+    padding-right: 24px;
+    font-size: 18px;
+    border: none;
+    outline: none;
+    font-family: inherit;
+}
+
+.form button {
+    height: 64px;
+    padding-left: 40px;
+    padding-right: 40px;
+    font-size: 18px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.button-create {
+    background-color: #CCCCCC;
+    color: black;
+}
+.button-create:hover {
+    background-color: #bbbbbb;
+}
+
+.button-clear {
+    background-color: #9B2D2D;
+    color: black;
+}
+.button-clear:hover {
+    background-color: #852525;
+}
+
+.list {
+    width: 100%;
+    max-width: 800px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.task {
+    display: flex;
+    align-items: center;
+    height: 96px;
+    padding-left: 24px;
+    padding-right: 24px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.task:hover {
+    filter: brightness(0.98);
+}
+
+.task:last-child {
+    border-bottom: none;
+}
+
+.icon {
+    width: 36px;
+    margin-right: 24px;
+    display: flex;
+    align-items: center;
+}
+
+.text {
+    flex: 1;
+}
+
+.text h3 {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
+.text p {
+    font-size: 12px;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+}
+
+.button-delete {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    margin-left: 16px;
+}
+
+.button-delete svg {
+    width: 28px;
+    height: 28px;
+}
+
+.button-delete:hover svg {
+    transform: scale(1.1);
+}
+
+.task-done {
+    background-color: #949494;
+}
+.task-done h3 {
+    text-decoration: line-through;
+    opacity: 0.9;
+}
+
+.task-gray {
+    background-color: #DEDEDE;
+    color: #374151;
+}
+.task-gray p {
+    color: #6b7280;
+}
+
+.task-white {
+    background-color: white;
+    color: #374151;
+}
+.task-white p {
+    color: #6b7280;
+}
+
+.footer {
+    width: 100%;
+    max-width: 800px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 24px;
+    padding-bottom: 24px;
+    margin-top: 60px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 300;
+}
+
+svg {
+    display: block;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+.icon-check {
+    stroke: white;
+}
+.icon-cross {
+    stroke: currentColor;
+}

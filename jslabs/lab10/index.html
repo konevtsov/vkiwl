@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Погода - Карусель прогнозов | Open-Meteo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌤 Прогноз погоды</h1>
+            <div class="location-info" id="locationInfo">
+                📍 Определение местоположения...
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="cityInput" class="search-input" placeholder="Введите название города (например, London, Paris, Tokyo)">
+            <button class="search-btn" onclick="searchCity()">🔍 Поиск</button>
+            <button class="location-btn" onclick="getUserLocation()">📍 Моё местоположение</button>
+        </div>
+
+        <div class="mode-switch">
+            <button class="mode-btn active" onclick="switchMode('daily')">📅 По дням</button>
+            <button class="mode-btn" onclick="switchMode('hourly')">🕐 По часам</button>
+        </div>
+
+        <div class="carousel-container">
+            <button class="arrow arrow-left" onclick="prevSlide()">‹</button>
+            <div class="carousel">
+                <div class="carousel-track" id="carouselTrack">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Загрузка прогноза...
+                    </div>
+                </div>
+            </div>
+            <button class="arrow arrow-right" onclick="nextSlide()">›</button>
+        </div>
+        <div class="indicators" id="indicators"></div>
+
+        <footer>
+            Данные предоставлены Open-Meteo.com
+        </footer>
+    </div>
+
+    <script>
+        // Глобальные переменные
+        let currentWeatherData = null;
+        let currentMode = 'daily'; // 'daily' или 'hourly'
+        let currentIndex = 0;
+        let currentLat = null;
+        let currentLon = null;
+        let currentCityName = '';
+
+        // Координаты Москвы (по умолчанию)
+        const MOSCOW_LAT = 55.7558;
+        const MOSCOW_LON = 37.6173;
+        const MOSCOW_NAME = 'Москва, Россия';
+
+        // Иконки погоды на основе кода WMO
+        const weatherIcons = {
+            0: '☀️',      // Ясно
+            1: '🌤',      // В основном ясно
+            2: '⛅',      // Переменная облачность
+            3: '☁️',      // Пасмурно
+            45: '🌫',     // Туман
+            48: '🌫',     // Туман с изморозью
+            51: '🌧',     // Морось слабая
+            53: '🌧',     // Морось умеренная
+            55: '🌧',     // Морось густая
+            56: '🌧❄️',   // Ледяная морось
+            57: '🌧❄️',   // Ледяная морось густая
+            61: '🌧',     // Дождь слабый
+            63: '🌧',     // Дождь умеренный
+            65: '🌧',     // Дождь сильный
+            66: '🌧❄️',   // Ледяной дождь
+            67: '🌧❄️',   // Ледяной дождь сильный
+            71: '🌨',     // Снег слабый
+            73: '🌨',     // Снег умеренный
+            75: '🌨',     // Снег сильный
+            77: '🌨',     // Снежные зёрна
+            80: '🌦',     // Ливень слабый
+            81: '🌦',     // Ливень умеренный
+            82: '🌦',     // Ливень сильный
+            85: '🌨🌧',   // Снежный ливень слабый
+            86: '🌨🌧',   // Снежный ливень сильный
+            95: '⛈',     // Гроза
+            96: '⛈🌨',   // Гроза с градом
+            99: '⛈🌨'    // Гроза с сильным градом
+        };
+
+        function getWeatherIcon(code) {
+            return weatherIcons[code] || '❓';
+        }
+
+        function getWeatherDescription(code) {
+            const descriptions = {
+                0: 'Ясно',
+                1: 'В основном ясно',
+                2: 'Переменная облачность',
+                3: 'Пасмурно',
+                45: 'Туман',
+                48: 'Туман',
+                51: 'Морось',
+                53: 'Морось',
+                55: 'Морось',
+                61: 'Дождь',
+                63: 'Дождь',
+                65: 'Сильный дождь',
+                71: 'Снег',
+                73: 'Снег',
+                75: 'Сильный снег',
+                80: 'Ливень',
+                81: 'Ливень',
+                82: 'Сильный ливень',
+                95: 'Гроза',
+                96: 'Гроза',
+                99: 'Гроза'
+            };
+            return descriptions[code] || 'Разная погода';
+        }
+
+        // Получение геопозиции
+        function getUserLocation() {
+            if (navigator.geolocation) {
+                const loadingDiv = document.getElementById('carouselTrack');
+                loadingDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Определение местоположения...</div>';
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        currentLat = position.coords.latitude;
+                        currentLon = position.coords.longitude;
+                        currentCityName = '';
+                        fetchWeatherData(currentLat, currentLon, 'Ваше местоположение');
+                    },
+                    (error) => {
+                        console.warn('Ошибка геопозиции:', error);
+                        useDefaultLocation();
+                    }
+                );
+            } else {
+                useDefaultLocation();
+            }
+        }
+
+        function useDefaultLocation() {
+            currentLat = MOSCOW_LAT;
+            currentLon = MOSCOW_LON;
+            currentCityName = '';
+            fetchWeatherData(currentLat, currentLon, MOSCOW_NAME);
+        }
+
+        // Поиск города через геокодинг (Open-Meteo)
+        async function searchCity() {
+            const cityName = document.getElementById('cityInput').value.trim();
+            if (!cityName) {
+                alert('Введите название города');
+                return;
+            }
+
+            const loadingDiv = document.getElementById('carouselTrack');
+            loadingDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Поиск города...</div>';
+            document.getElementById('indicators').innerHTML = '';
+
+            try {
+                const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=ru&format=json`;
+                const response = await fetch(geoUrl);
+                const data = await response.json();
+
+                if (data.results && data.results.length > 0) {
+                    const result = data.results[0];
+                    currentLat = result.latitude;
+                    currentLon = result.longitude;
+                    currentCityName = result.name;
+                    const country = result.country || '';
+                    const displayName = `${result.name}${country ? `, ${country}` : ''}`;
+                    fetchWeatherData(currentLat, currentLon, displayName);
+                } else {
+                    throw new Error('Город не найден');
+                }
+            } catch (error) {
+                document.getElementById('carouselTrack').innerHTML = `
+                    <div class="error">
+                        ❌ Город "${cityName}" не найден.<br>
+                        Попробуйте ввести название на английском.
+                    </div>
+                `;
+                document.getElementById('locationInfo').innerHTML = `📍 ${MOSCOW_NAME} (по умолчанию)`;
+            }
+        }
+
+        // Основной запрос погоды
+        async function fetchWeatherData(lat, lon, locationName) {
+            currentIndex = 0;
+            
+            // Формируем URL в зависимости от режима
+            let url;
+            if (currentMode === 'daily') {
+                url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=auto&forecast_days=7`;
+            } else {
+                url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=weather_code,temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&timezone=auto&forecast_days=2`;
+            }
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                currentWeatherData = data;
+                
+                // Обновляем информацию о местоположении
+                document.getElementById('locationInfo').innerHTML = `📍 ${locationName}<br>📐 ${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
+                
+                renderCarousel();
+                updateIndicators();
+            } catch (error) {
+                console.error('Ошибка загрузки погоды:', error);
+                document.getElementById('carouselTrack').innerHTML = `
+                    <div class="error">
+                        ❌ Ошибка загрузки данных о погоде.<br>
+                        Проверьте подключение к интернету.
+                    </div>
+                `;
+            }
+        }
+
+        // Рендер карусели
+        function renderCarousel() {
+            if (!currentWeatherData) return;
+
+            const track = document.getElementById('carouselTrack');
+            let html = '';
+
+            if (currentMode === 'daily') {
+                const daily = currentWeatherData.daily;
+                const times = daily.time;
+                
+                for (let i = 0; i < times.length; i++) {
+                    const date = new Date(times[i]);
+                    const formattedDate = date.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+                    const icon = getWeatherIcon(daily.weather_code[i]);
+                    const desc = getWeatherDescription(daily.weather_code[i]);
+                    const tempMax = Math.round(daily.temperature_2m_max[i]);
+                    const tempMin = Math.round(daily.temperature_2m_min[i]);
+                    const precip = daily.precipitation_sum[i];
+                    const wind = Math.round(daily.wind_speed_10m_max[i]);
+
+                    html += `
+                        <div class="weather-card">
+                            <div class="date">${formattedDate}</div>
+                            <div class="weather-icon">${icon}</div>
+                            <div class="temp">${tempMax}°<span> / ${tempMin}°</span></div>
+                            <div class="weather-desc">${desc}</div>
+                            <div class="details">
+                                <div class="detail-item">
+                                    <div class="detail-label">🌧 Осадки</div>
+                                    <div class="detail-value">${precip.toFixed(1)} мм</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">💨 Ветер</div>
+                                    <div class="detail-value">${wind} км/ч</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                // Почасовой прогноз (первые 48 часов)
+                const hourly = currentWeatherData.hourly;
+                const times = hourly.time;
+                
+                for (let i = 0; i < Math.min(times.length, 48); i++) {
+                    const date = new Date(times[i]);
+                    const formattedTime = date.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    const icon = getWeatherIcon(hourly.weather_code[i]);
+                    const desc = getWeatherDescription(hourly.weather_code[i]);
+                    const temp = Math.round(hourly.temperature_2m[i]);
+                    const humidity = hourly.relative_humidity_2m?.[i] || 0;
+                    const precip = hourly.precipitation[i] || 0;
+                    const wind = Math.round(hourly.wind_speed_10m[i] || 0);
+
+                    html += `
+                        <div class="weather-card">
+                            <div class="date">${formattedTime}</div>
+                            <div class="weather-icon">${icon}</div>
+                            <div class="temp">${temp}°<span></span></div>
+                            <div class="weather-desc">${desc}</div>
+                            <div class="details">
+                                <div class="detail-item">
+                                    <div class="detail-label">💧 Влажность</div>
+                                    <div class="detail-value">${humidity}%</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">🌧 Осадки</div>
+                                    <div class="detail-value">${precip.toFixed(1)} мм</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">💨 Ветер</div>
+                                    <div class="detail-value">${wind} км/ч</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            track.innerHTML = html;
+            updateCarouselPosition();
+        }
+
+        function updateCarouselPosition() {
+            const track = document.getElementById('carouselTrack');
+            const cardWidth = track.firstChild?.offsetWidth || 0;
+            track.style.transform = `translateX(-${currentIndex * 100}%)`;
+        }
+
+        function nextSlide() {
+            if (!currentWeatherData) return;
+            
+            let maxIndex;
+            if (currentMode === 'daily') {
+                maxIndex = currentWeatherData.daily.time.length - 1;
+            } else {
+                maxIndex = Math.min(currentWeatherData.hourly.time.length, 48) - 1;
+            }
+            
+            if (currentIndex < maxIndex) {
+                currentIndex++;
+                updateCarouselPosition();
+                updateIndicators();
+            }
+        }
+
+        function prevSlide() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCarouselPosition();
+                updateIndicators();
+            }
+        }
+
+        function updateIndicators() {
+            if (!currentWeatherData) return;
+            
+            let total;
+            if (currentMode === 'daily') {
+                total = currentWeatherData.daily.time.length;
+            } else {
+                total = Math.min(currentWeatherData.hourly.time.length, 48);
+            }
+            
+            const container = document.getElementById('indicators');
+            let html = '';
+            for (let i = 0; i < total; i++) {
+                html += `<div class="indicator ${i === currentIndex ? 'active' : ''}" onclick="goToSlide(${i})"></div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function goToSlide(index) {
+            if (!currentWeatherData) return;
+            
+            let maxIndex;
+            if (currentMode === 'daily') {
+                maxIndex = currentWeatherData.daily.time.length - 1;
+            } else {
+                maxIndex = Math.min(currentWeatherData.hourly.time.length, 48) - 1;
+            }
+            
+            if (index >= 0 && index <= maxIndex) {
+                currentIndex = index;
+                updateCarouselPosition();
+                updateIndicators();
+            }
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            currentIndex = 0;
+            
+            // Обновляем активную кнопку
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            if (mode === 'daily') {
+                document.querySelector('.mode-btn:first-child').classList.add('active');
+            } else {
+                document.querySelector('.mode-btn:last-child').classList.add('active');
+            }
+            
+            // Перезагружаем данные с текущими координатами
+            if (currentLat && currentLon) {
+                const locationDisplay = document.getElementById('locationInfo').innerText;
+                fetchWeatherData(currentLat, currentLon, locationDisplay.replace('📍 ', '').split('\n')[0]);
+            } else {
+                getUserLocation();
+            }
+        }
+
+        // Инициализация при загрузке страницы
+        window.onload = () => {
+            getUserLocation();
+        };
+    </script>
+</body>
+</html>

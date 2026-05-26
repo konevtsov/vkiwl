@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Задачи по JavaScript: Таймеры, Промисы, Async/Await</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Задачи по JavaScript</h1>
+        
+        <div class="tasks-grid">
+            <!-- Задача 1: Таймеры -->
+            <div class="task-card">
+                <div class="task-title">Задача 1: Таймеры</div>
+                <div class="task-description">
+                    Счётчик с интервалом 1 секунда: N, N-1, ..., 0
+                </div>
+                
+                <div class="input-group">
+                    <label>Начальное значение N:</label>
+                    <input type="number" id="counterValue" value="10" min="0">
+                </div>
+                
+                <div class="button-group">
+                    <button onclick="startCounter()">▶ Старт</button>
+                    <button onclick="pauseCounter()">⏸ Пауза</button>
+                    <button onclick="stopCounter()">⏹ Стоп</button>
+                </div>
+                
+                <div class="output">
+                    <div class="output-title">Результат:</div>
+                    <div id="counterOutput">Счётчик не запущен</div>
+                </div>
+            </div>
+
+            <!-- Задача 2: Промисы -->
+            <div class="task-card">
+                <div class="task-title">Задача 2: Промисы</div>
+                <div class="task-description">
+                    Счётчик через delay() + первый репозиторий GitHub
+                </div>
+                
+                <div class="input-group">
+                    <label>Имя пользователя GitHub:</label>
+                    <input type="text" id="githubUsername" value="octocat" placeholder="Введите имя пользователя">
+                    <button onclick="getFirstRepository()">🔍 Получить репозиторий</button>
+                    <button onclick="runPromiseCounter()">⏱ Запустить счётчик (delay)</button>
+                </div>
+                
+                <div class="output">
+                    <div class="output-title">Результат:</div>
+                    <div id="promiseOutput">Ожидание действия...</div>
+                </div>
+            </div>
+
+            <!-- Задача 3: Async/Await -->
+            <div class="task-card">
+                <div class="task-title">Задача 3: Async/Await</div>
+                <div class="task-description">
+                    Поиск пользователя GitHub с циклическим вводом
+                </div>
+                
+                <div class="input-group">
+                    <button onclick="runAsyncAwaitExample()">👤 Найти пользователя GitHub</button>
+                </div>
+                
+                <div class="output">
+                    <div class="output-title">Результат:</div>
+                    <div id="asyncOutput">Нажмите кнопку для поиска</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== ЗАДАЧА 1: Таймеры ====================
+        let counterInstance = null;
+        let currentCounterValue = 0;
+
+        function counter(n) {
+            console.log(`Запуск counter(${n})`);
+            let current = n;
+            
+            const intervalId = setInterval(() => {
+                console.log(current);
+                if (current === 0) {
+                    clearInterval(intervalId);
+                    console.log("Счётчик остановлен");
+                } else {
+                    current--;
+                }
+            }, 1000);
+        }
+
+        function createCounter(n) {
+            let count = n;
+            let intervalId = null;
+            let isRunning = false;
+            
+            function updateOutput() {
+                const outputDiv = document.getElementById('counterOutput');
+                if (count >= 0) {
+                    outputDiv.innerHTML = `Текущее значение: <strong>${count}</strong><br>`;
+                    if (count === 0 && intervalId) {
+                        outputDiv.innerHTML += '<span class="success">✅ Счётчик завершён!</span>';
+                        if (intervalId) {
+                            clearInterval(intervalId);
+                            intervalId = null;
+                            isRunning = false;
+                        }
+                    } else if (intervalId) {
+                        outputDiv.innerHTML += '<span class="status">⏳ Счётчик активен...</span>';
+                    }
+                } else {
+                    outputDiv.innerHTML = '<span class="status">⏸ Счётчик остановлен</span>';
+                }
+            }
+            
+            return {
+                start: function() {
+                    if (intervalId) {
+                        console.log("Счётчик уже запущен");
+                        return;
+                    }
+                    
+                    if (count < 0) {
+                        console.log("Счётчик уже завершён, используйте stop() для сброса");
+                        return;
+                    }
+                    
+                    console.log(`Запуск счётчика с ${count}`);
+                    isRunning = true;
+                    
+                    intervalId = setInterval(() => {
+                        if (count >= 0) {
+                            console.log(count);
+                            updateOutput();
+                            
+                            if (count === 0) {
+                                console.log("Счётчик завершён");
+                                clearInterval(intervalId);
+                                intervalId = null;
+                                isRunning = false;
+                            }
+                            count--;
+                        } else {
+                            clearInterval(intervalId);
+                            intervalId = null;
+                            isRunning = false;
+                        }
+                    }, 1000);
+                    
+                    updateOutput();
+                },
+                
+                pause: function() {
+                    if (intervalId) {
+                        console.log(`Счётчик приостановлен на значении ${count}`);
+                        clearInterval(intervalId);
+                        intervalId = null;
+                        isRunning = false;
+                        updateOutput();
+                        document.getElementById('counterOutput').innerHTML = 
+                            `Счётчик приостановлен на значении: <strong>${count + 1}</strong><br>` +
+                            '<span class="status">⏸ Нажмите "Старт" для продолжения</span>';
+                    } else {
+                        console.log("Счётчик не запущен");
+                    }
+                },
+                
+                stop: function() {
+                    if (intervalId) {
+                        clearInterval(intervalId);
+                        intervalId = null;
+                    }
+                    count = n;
+                    isRunning = false;
+                    console.log(`Счётчик сброшен до ${n}`);
+                    document.getElementById('counterOutput').innerHTML = 
+                        `Счётчик сброшен. Начальное значение: ${n}<br>` +
+                        '<span class="status">⏹ Нажмите "Старт" для запуска</span>';
+                }
+            };
+        }
+
+        function startCounter() {
+            const n = parseInt(document.getElementById('counterValue').value);
+            if (isNaN(n) || n < 0) {
+                alert("Пожалуйста, введите корректное неотрицательное число");
+                return;
+            }
+            
+            if (counterInstance) {
+                counterInstance.stop();
+            }
+            
+            counterInstance = createCounter(n);
+            counterInstance.start();
+        }
+
+        function pauseCounter() {
+            if (counterInstance) {
+                counterInstance.pause();
+            } else {
+                alert("Сначала запустите счётчик");
+            }
+        }
+
+        function stopCounter() {
+            if (counterInstance) {
+                counterInstance.stop();
+            } else {
+                alert("Счётчик не был запущен");
+            }
+        }
+
+        // ==================== ЗАДАЧА 2: Промисы ====================
+        
+        function delay(N) {
+            return new Promise((resolve) => {
+                setTimeout(resolve, N * 1000);
+            });
+        }
+
+        async function runPromiseCounter() {
+            const outputDiv = document.getElementById('promiseOutput');
+            const n = parseInt(prompt("Введите число для обратного отсчёта:", "5"));
+            
+            if (isNaN(n) || n < 0) {
+                outputDiv.innerHTML = '<span class="error">❌ Ошибка: введите корректное число</span>';
+                return;
+            }
+            
+            outputDiv.innerHTML = `<span class="status">⏳ Запуск счётчика от ${n} до 0...</span><br>`;
+            
+            for (let i = n; i >= 0; i--) {
+                outputDiv.innerHTML += `<div>${i}</div>`;
+                if (i > 0) {
+                    await delay(1);
+                }
+            }
+            
+            outputDiv.innerHTML += '<span class="success">✅ Счётчик завершён!</span>';
+        }
+
+        async function getFirstRepository() {
+            const username = document.getElementById('githubUsername').value.trim();
+            const outputDiv = document.getElementById('promiseOutput');
+            
+            if (!username) {
+                outputDiv.innerHTML = '<span class="error">❌ Пожалуйста, введите имя пользователя</span>';
+                return;
+            }
+            
+            outputDiv.innerHTML = `<span class="status">🔍 Поиск пользователя "${username}"...</span>`;
+            
+            try {
+                const userResponse = await fetch(`https://api.github.com/users/${username}`);
+                
+                if (!userResponse.ok) {
+                    throw new Error(`Пользователь "${username}" не найден (${userResponse.status})`);
+                }
+                
+                const userData = await userResponse.json();
+                outputDiv.innerHTML += `<div>✅ Найден пользователь: ${userData.login}</div>`;
+                
+                outputDiv.innerHTML += `<div>📚 Получение списка репозиториев...</div>`;
+                const reposResponse = await fetch(`https://api.github.com/users/${username}/repos`);
+                
+                if (!reposResponse.ok) {
+                    throw new Error(`Не удалось получить репозитории (${reposResponse.status})`);
+                }
+                
+                const repos = await reposResponse.json();
+                
+                if (repos.length === 0) {
+                    outputDiv.innerHTML += `<div class="status">📭 У пользователя "${username}" нет репозиториев</div>`;
+                } else {
+                    const firstRepo = repos[0];
+                    outputDiv.innerHTML += `
+                        <div class="success">✅ Первый репозиторий:</div>
+                        <div><strong>Название:</strong> ${firstRepo.name}</div>
+                        <div><strong>Описание:</strong> ${firstRepo.description || 'Нет описания'}</div>
+                        <div><strong>⭐ Звёзд:</strong> ${firstRepo.stargazers_count}</div>
+                        <div><strong>🔗 URL:</strong> <a href="${firstRepo.html_url}" target="_blank">${firstRepo.html_url}</a></div>
+                    `;
+                }
+                
+            } catch (error) {
+                outputDiv.innerHTML += `<div class="error">❌ Ошибка: ${error.message}</div>`;
+            }
+        }
+
+        // ==================== ЗАДАЧА 3: Async/Await ====================
+        
+        class HttpError extends Error {
+            constructor(response) {
+                super(`${response.status} for ${response.url}`);
+                this.name = 'HttpError';
+                this.response = response;
+            }
+        }
+
+        async function loadJson(url) {
+            const response = await fetch(url);
+            
+            if (response.status == 200) {
+                return await response.json();
+            } else {
+                throw new HttpError(response);
+            }
+        }
+
+        async function getGithubUser() {
+            const outputDiv = document.getElementById('asyncOutput');
+            
+            while (true) {
+                let name = prompt("Введите логин пользователя GitHub:", "iliakan");
+                
+                if (!name) {
+                    outputDiv.innerHTML = '<span class="status">❌ Операция отменена пользователем</span>';
+                    return null;
+                }
+                
+                try {
+                    const user = await loadJson(`https://api.github.com/users/${name}`);
+                    const result = `✅ Полное имя: ${user.name || 'Не указано'}<br>
+                                    📝 Логин: ${user.login}<br>
+                                    👥 Подписчики: ${user.followers}<br>
+                                    📚 Репозиториев: ${user.public_repos}<br>
+                                    🔗 URL: <a href="${user.html_url}" target="_blank">${user.html_url}</a>`;
+                    
+                    outputDiv.innerHTML = result;
+                    alert(`Полное имя: ${user.name || 'Не указано'}`);
+                    return user;
+                    
+                } catch (err) {
+                    if (err instanceof HttpError && err.response.status == 404) {
+                        outputDiv.innerHTML = `<span class="error">❌ Такого пользователя не существует, пожалуйста, повторите ввод.</span><br>`;
+                        alert("Такого пользователя не существует, пожалуйста, повторите ввод.");
+                        continue;
+                    } else {
+                        outputDiv.innerHTML = `<span class="error">❌ Произошла ошибка: ${err.message}</span>`;
+                        throw err;
+                    }
+                }
+            }
+        }
+
+        async function runAsyncAwaitExample() {
+            const outputDiv = document.getElementById('asyncOutput');
+            outputDiv.innerHTML = '<span class="status">⏳ Ожидание ввода пользователя...</span>';
+            await getGithubUser();
+        }
+
+        console.log("Пример работы counter(5):");
+
+        console.log("Все функции загружены и готовы к работе!");
+    </script>
+</body>
+</html>

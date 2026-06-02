@@ -46,7 +46,6 @@
     </div>
 
     <script>
-        // Глобальные переменные
         let currentWeatherData = null;
         let currentMode = 'daily'; // 'daily' или 'hourly'
         let currentIndex = 0;
@@ -54,41 +53,40 @@
         let currentLon = null;
         let currentCityName = '';
 
-        // Координаты Москвы (по умолчанию)
         const MOSCOW_LAT = 55.7558;
         const MOSCOW_LON = 37.6173;
         const MOSCOW_NAME = 'Москва, Россия';
 
         // Иконки погоды на основе кода WMO
         const weatherIcons = {
-            0: '☀️',      // Ясно
-            1: '🌤',      // В основном ясно
-            2: '⛅',      // Переменная облачность
-            3: '☁️',      // Пасмурно
-            45: '🌫',     // Туман
-            48: '🌫',     // Туман с изморозью
-            51: '🌧',     // Морось слабая
-            53: '🌧',     // Морось умеренная
-            55: '🌧',     // Морось густая
-            56: '🌧❄️',   // Ледяная морось
-            57: '🌧❄️',   // Ледяная морось густая
-            61: '🌧',     // Дождь слабый
-            63: '🌧',     // Дождь умеренный
-            65: '🌧',     // Дождь сильный
-            66: '🌧❄️',   // Ледяной дождь
-            67: '🌧❄️',   // Ледяной дождь сильный
-            71: '🌨',     // Снег слабый
-            73: '🌨',     // Снег умеренный
-            75: '🌨',     // Снег сильный
-            77: '🌨',     // Снежные зёрна
-            80: '🌦',     // Ливень слабый
-            81: '🌦',     // Ливень умеренный
-            82: '🌦',     // Ливень сильный
-            85: '🌨🌧',   // Снежный ливень слабый
-            86: '🌨🌧',   // Снежный ливень сильный
-            95: '⛈',     // Гроза
-            96: '⛈🌨',   // Гроза с градом
-            99: '⛈🌨'    // Гроза с сильным градом
+            0: '☀️',      
+            1: '🌤',      
+            2: '⛅',      
+            3: '☁️',      
+            45: '🌫',     
+            48: '🌫',     
+            51: '🌧',     
+            53: '🌧',     
+            55: '🌧',     
+            56: '🌧❄️',   
+            57: '🌧❄️',   
+            61: '🌧',     
+            63: '🌧',     
+            65: '🌧',     
+            66: '🌧❄️',   
+            67: '🌧❄️',   
+            71: '🌨',     
+            73: '🌨',     
+            75: '🌨',     
+            77: '🌨',     
+            80: '🌦',     
+            81: '🌦',     
+            82: '🌦',     
+            85: '🌨🌧',   
+            86: '🌨🌧',   
+            95: '⛈',     
+            96: '⛈🌨',   
+            99: '⛈🌨'    
         };
 
         function getWeatherIcon(code) {
@@ -167,6 +165,7 @@
             try {
                 const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=ru&format=json`;
                 const response = await fetch(geoUrl);
+                console.log(geoUrl);
                 const data = await response.json();
 
                 if (data.results && data.results.length > 0) {
@@ -195,7 +194,6 @@
         async function fetchWeatherData(lat, lon, locationName) {
             currentIndex = 0;
             
-            // Формируем URL в зависимости от режима
             let url;
             if (currentMode === 'daily') {
                 url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=auto&forecast_days=7`;
@@ -208,7 +206,6 @@
                 const data = await response.json();
                 currentWeatherData = data;
                 
-                // Обновляем информацию о местоположении
                 document.getElementById('locationInfo').innerHTML = `📍 ${locationName}<br>📐 ${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
                 
                 renderCarousel();
@@ -265,7 +262,6 @@
                     `;
                 }
             } else {
-                // Почасовой прогноз (первые 48 часов)
                 const hourly = currentWeatherData.hourly;
                 const times = hourly.time;
                 

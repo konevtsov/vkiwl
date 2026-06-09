@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список дел</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+    <h1>Список дел</h1>
+
+    <div class="controls">
+
+        <input
+            type="text"
+            id="todoInput"
+            placeholder="Новый элемент списка">
+
+        <div class="buttons">
+            <button class="create">
+                Создать
+            </button>
+
+            <button class="clear">
+                Очистить всё
+            </button>
+        </div>
+
+    </div>
+
+    <div class="list-wrapper">
+
+        <ul class="todo-list"></ul>
+
+        <div class="empty">
+            Не найдено ни одного дела
+        </div>
+
+    </div>
+
+    <div class="footer">
+
+        <div class="filters">
+
+            <a href="#" data-filter="all" class="active">
+                Все
+            </a>
+
+            <a href="#" data-filter="done">
+                Сделанные
+            </a>
+
+            <a href="#" data-filter="active">
+                Не сделанные
+            </a>
+
+        </div>
+
+        <button id="sortBtn">
+            Сортировать А-Я
+        </button>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
+
+const input = document.getElementById("todoInput");
+
+const createBtn = document.querySelector(".create");
+const clearBtn = document.querySelector(".clear");
+
+const list = document.querySelector(".todo-list");
+const wrapper = document.querySelector(".list-wrapper");
+
+const filterLinks =
+    document.querySelectorAll(".filters a");
+
+const sortBtn =
+    document.getElementById("sortBtn");
+
+let currentFilter = "all";
+
+let todos = [
+    {
+        text: "Почесать кошку",
+        done: true
+    },
+    {
+        text: "Полить картошку",
+        done: false
+    },
+    {
+        text: "Сложить в лукошко",
+        done: false
+    }
+];
+
+function render() {
+
+    list.innerHTML = "";
+
+    let filteredTodos = [...todos];
+
+    if (currentFilter === "done") {
+
+        filteredTodos =
+            todos.filter(todo => todo.done);
+
+    } else if (currentFilter === "active") {
+
+        filteredTodos =
+            todos.filter(todo => !todo.done);
+    }
+
+    if (filteredTodos.length === 0) {
+
+        wrapper.classList.add("empty-mode");
+        return;
+    }
+
+    wrapper.classList.remove("empty-mode");
+
+    filteredTodos.forEach(todo => {
+
+        const li =
+            document.createElement("li");
+
+        li.innerHTML = `
+            <input type="checkbox"
+                ${todo.done ? "checked" : ""}>
+            <span>${todo.text}</span>
+            <button class="delete">✖️</button>
+        `;
+
+        const checkbox =
+            li.querySelector("input");
+
+        checkbox.addEventListener(
+            "change",
+            function() {
+
+                todo.done =
+                    checkbox.checked;
+
+                render();
+            }
+        );
+
+        const deleteBtn =
+            li.querySelector(".delete");
+
+        deleteBtn.addEventListener(
+            "click",
+            function() {
+
+                todos =
+                    todos.filter(
+                        item => item !== todo
+                    );
+
+                render();
+            }
+        );
+
+        list.appendChild(li);
+    });
+}
+
+createBtn.addEventListener(
+    "click",
+    function() {
+
+        const text =
+            input.value.trim();
+
+        if (text === "") return;
+
+        todos.push({
+            text: text,
+            done: false
+        });
+
+        input.value = "";
+
+        render();
+    }
+);
+
+clearBtn.addEventListener(
+    "click",
+    function() {
+
+        todos = [];
+
+        render();
+    }
+);
+
+filterLinks.forEach(link => {
+
+    link.addEventListener(
+        "click",
+        function(event) {
+
+            event.preventDefault();
+
+            filterLinks.forEach(item =>
+                item.classList.remove(
+                    "active"
+                )
+            );
+
+            this.classList.add("active");
+
+            currentFilter =
+                this.dataset.filter;
+
+            render();
+        }
+    );
+
+});
+
+sortBtn.addEventListener(
+    "click",
+    function() {
+
+        todos.sort(
+            (a, b) =>
+                a.text.localeCompare(
+                    b.text,
+                    "ru"
+                )
+        );
+
+        render();
+    }
+);
+
+render();
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #2f4f4f;
+}
+
+
+.app {
+    width: 600px;
+    max-width: 90%;
+    text-align: center;
+    color: white;
+}
+
+
+h1 {
+    margin-bottom: 20px;
+}
+
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+
+.controls input {
+    flex: 1 1 100%;
+    padding: 10px;
+    border: none;
+    outline: none;
+}
+
+
+.buttons {
+    display: flex;
+    gap: 10px;
+    flex: 1 1 100%;
+}
+
+
+button {
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    flex: 1;
+}
+
+.create {
+    background-color: #dcdcdc;
+}
+
+.clear {
+    background-color: #c0392b;
+    color: white;
+}
+
+
+.list-wrapper {
+    position: relative;
+    height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.todo-list {
+    list-style: none;
+    width: 100%;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+
+.todo-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #ddd;
+    padding: 12px;
+    margin-bottom: 5px;
+    color: black;
+}
+
+
+.todo-list li input:checked + span {
+    text-decoration: line-through;
+    color: #777;
+}
+
+
+.todo-list span {
+    flex: 1;
+    text-align: left;
+}
+
+
+.delete {
+    background: none;
+    font-size: 16px;
+}
+
+
+.empty {
+    position: absolute;
+    color: white;
+    font-size: 18px;
+    text-align: center;
+    display: none;
+}
+
+
+.list-wrapper.empty-mode .empty {
+    display: block;
+}
+
+.list-wrapper.empty-mode .todo-list {
+    display: none;
+}
+
+
+@media (max-width: 500px) {
+    .buttons {
+        flex-direction: column; 
+    }
+}
+.footer {
+    margin-top: 20px;
+}
+
+.filters {
+    margin-bottom: 15px;
+}
+
+.filters a {
+    color: white;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+.filters a.active {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+#sortBtn {
+    width: 100%;
+}
+
